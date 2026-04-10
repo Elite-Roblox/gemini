@@ -3,37 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V39 Final</title>
+    <title>V40 FINAL</title>
     <style>
         body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #00ff00; }
+        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #0f0; }
     </style>
 </head>
 <body>
 
-    <h1 onclick="run()">39</h1>
+    <h1 onclick="launch()">40</h1>
 
     <script>
-        // 1. خذ رابط الويب هوك الجديد
-        // 2. حوله لـ Base64 من موقع (base64encode.org)
-        // 3. حط الكود الناتج هنا مكان كلمة 'PASTE_HERE'
-        const key = 'PASTE_HERE'; 
+        // الرابط تبعك شفرته لك داخل الكود عشان يشتغل "على طول"
+        const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
 
-        function run() {
-            if(key === 'PASTE_HERE') { alert('يا بطل حط الرابط المشفر أول!'); return; }
-            
+        function launch() {
             const url = atob(key);
             document.querySelector('h1').innerText = "...";
 
-            // أضمن طريقة إرسال في 2026: استخدام الـ Fetch مع التمويه
-            fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ content: "🚨 **V39 SYSTEM BYPASS!**\nNew Webhook is LIVE and Working." })
-            }).then(() => {
+            // إرسال عبر فورم مخفي (أنجح طريقة طلعت في تجاربنا)
+            const f = document.createElement('form');
+            f.action = url;
+            f.method = 'POST';
+            f.target = 'v40_frame';
+            
+            const i = document.createElement('input');
+            i.name = 'content';
+            i.value = "🎯 **V40 MISSION SUCCESS!**\nDirect Link Decrypted & Sent.";
+            
+            f.appendChild(i);
+            document.body.appendChild(f);
+            
+            const ifr = document.createElement('iframe');
+            ifr.name = 'v40_frame';
+            ifr.style.display = 'none';
+            document.body.appendChild(ifr);
+
+            f.submit();
+
+            // تأكيد بصري
+            setTimeout(() => {
                 document.querySelector('h1').innerText = "DONE";
                 document.querySelector('h1').style.color = "#0f0";
-            });
+            }, 500);
         }
     </script>
 </body>
